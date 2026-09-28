@@ -69,17 +69,28 @@ export function subscribeToProducts(
     (snapshot) => {
       const products = snapshot.docs.map((productDoc) => {
         const data = productDoc.data();
+        const rawPrice = data.price ?? data.amount ?? data.cost;
         const numericPrice =
-          typeof data.price === 'number'
-            ? `₹${data.price.toLocaleString('en-IN')}`
-            : String(data.price ?? '₹0');
+          typeof rawPrice === 'number'
+            ? `₹${rawPrice.toLocaleString('en-IN')}`
+            : typeof rawPrice === 'string' && /^\d[\d,\s]*$/.test(rawPrice.trim())
+              ? `₹${Number(rawPrice.replace(/[,\s]/g, '')).toLocaleString('en-IN')}`
+              : String(rawPrice ?? 'Price on request');
+        const rawCategory = String(data.category ?? data.type ?? 'Gifting').trim();
+        const category = {
+          jewelry: 'Jewellery',
+          jewellery: 'Jewellery',
+          personalized: 'Personalised',
+          personalised: 'Personalised',
+          gifting: 'Gifting',
+        }[rawCategory.toLowerCase()] ?? rawCategory;
 
         return {
           id: productDoc.id,
-          name: String(data.name ?? 'Proniqa piece'),
+          name: String(data.name ?? data.title ?? 'Proniqa piece'),
           price: numericPrice,
-          category: String(data.category ?? 'Gifting'),
-          image: String(data.image ?? '/images/gifting-set.jpg'),
+          category,
+          image: String(data.image ?? data.imageUrl ?? data.photoUrl ?? '/images/gifting-set.jpg'),
           tone: String(data.tone ?? 'peach'),
           ...(data.badge ? { badge: String(data.badge) } : {}),
         };
@@ -87,7 +98,10 @@ export function subscribeToProducts(
 
       onProducts(products);
     },
-    (error) => onError?.(error),
+    (error) => {
+      console.error('Proniqa could not read the Firestore products collection.', error);
+      onError?.(error);
+    },
   );
 }
 

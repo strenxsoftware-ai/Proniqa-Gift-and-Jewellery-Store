@@ -250,7 +250,14 @@ function Home() {
   const [userEmail, setUserEmail] = useState<string>();
   const [userId, setUserId] = useState<string>();
   const [notice, setNotice] = useState('');
-  useEffect(() => subscribeToProducts((remoteProducts) => { if (remoteProducts.length > 0) setCatalog(remoteProducts); }), []);
+  const [catalogError, setCatalogError] = useState('');
+  useEffect(() => subscribeToProducts(
+    (remoteProducts) => {
+      setCatalogError('');
+      if (remoteProducts.length > 0) setCatalog(remoteProducts);
+    },
+    () => setCatalogError('We could not read the Firebase products collection, so sample pieces are shown instead. Check your Firestore rules and project settings.'),
+  ), []);
   useEffect(() => subscribeToAuth((user) => { setUserEmail(user?.email ?? undefined); setUserId(user?.uid); }), []);
   const filtered = useMemo(() => catalog.filter((p) => (category === 'All pieces' || p.category === category) && p.name.toLowerCase().includes(query.toLowerCase())), [catalog, category, query]);
   const addToCart = (product: Product) => { setCart((current) => [...current, product]); setNotice(`${product.name} is in your bag`); setCartOpen(true); window.setTimeout(() => setNotice(''), 2600); };
@@ -270,6 +277,7 @@ function Home() {
       <section className="border-y border-[#5c2e30]/10 bg-[#edc96c] px-5 py-5 text-[#5c2e30]"><div className="mx-auto flex max-w-[1320px] items-center justify-between gap-5 overflow-hidden"><p className="mono whitespace-nowrap">Thoughtful goods for everyday magic</p><div className="hidden h-px flex-1 bg-[#5c2e30]/25 sm:block" /><p className="hidden text-sm sm:block">No occasion required <span className="ml-5">·</span> No occasion required <span className="ml-5">·</span></p><Sparkles size={18} /></div></section>
       <section id="shop" className="mx-auto max-w-[1320px] px-5 py-20 lg:px-10 lg:py-28">
         <div className="mb-9 flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="mono text-[#d96d4d]">The good stuff</p><h2 className="serif mt-2 text-4xl tracking-[-.04em] text-[#5c2e30] sm:text-5xl">Pick your kind of lovely.</h2></div><a href="#shop" className="line-link text-sm font-semibold text-[#5c2e30]" data-testid="link-view-all">View everything <ArrowRight className="ml-2 inline" size={15} /></a></div>
+        {catalogError && <div className="mb-6 rounded-2xl border border-[#d96d4d]/30 bg-[#f7d8d2] px-4 py-3 text-sm leading-6 text-[#6d3030]" role="alert" data-testid="status-catalog-error">{catalogError}</div>}
         <div className="mb-10 flex gap-2 overflow-x-auto pb-2 hide-scrollbar">{categories.map((item) => <button key={item} onClick={() => setCategory(item)} className={`whitespace-nowrap rounded-full border px-5 py-2.5 text-sm transition ${category === item ? 'border-[#5c2e30] bg-[#5c2e30] text-[#fff8ed]' : 'border-[#5c2e30]/20 text-[#765d5c] hover:border-[#5c2e30]/50'}`} data-testid={`button-category-${item.toLowerCase().replace(' ', '-')}`}>{item}</button>)}</div>
         <div className="grid grid-cols-2 gap-x-3 gap-y-10 sm:grid-cols-3 sm:gap-x-5 lg:gap-x-7">{filtered.map((product) => <ProductCard key={product.id} product={product} wished={wishlisted.includes(product.id)} onWish={() => toggleWish(product.id)} onAdd={() => addToCart(product)} />)}</div>
         {filtered.length === 0 && <div className="rounded-3xl bg-[#f2dec8] py-20 text-center"><p className="serif text-2xl text-[#5c2e30]">Nothing found, but something lovely is close.</p><button onClick={() => { setQuery(''); setCategory('All pieces'); }} className="mt-4 text-sm underline" data-testid="button-clear-search">Clear search</button></div>}

@@ -32,6 +32,9 @@ const fallbackProducts: Product[] = [
 ];
 
 const categories = ['All pieces', 'Jewellery', 'Personalised', 'Gifting'];
+const appBasePath = import.meta.env.BASE_URL;
+const homeHashPath = (hash: string) => `${appBasePath}#${hash}`;
+const storyPath = `${appBasePath}our-story`;
 
 function AppButton({ children, onClick, variant = 'dark', testId, className = '' }: { children: ReactNode; onClick?: () => void; variant?: 'dark' | 'light' | 'outline'; testId: string; className?: string }) {
   const styles = variant === 'dark' ? 'bg-[#5c2e30] text-[#fff8ed] hover:bg-[#74393a]' : variant === 'light' ? 'bg-[#fff8ed] text-[#5c2e30] hover:bg-white' : 'border border-[#5c2e30]/35 text-[#5c2e30] hover:bg-[#f5dfc8]';
@@ -49,10 +52,10 @@ function Header({ onCart, cartCount, onSearch, onMenu, onAccount, userEmail }: {
             <a href="#top" className="serif text-[30px] font-semibold tracking-[-.06em] text-[#5c2e30]" data-testid="link-home">proniqa<span className="text-[#d96d4d]">.</span></a>
           </div>
           <nav className="hidden items-center gap-8 lg:flex">
-            <a className="line-link text-sm text-[#5c2e30]" href="#shop" data-testid="link-shop">Shop all</a>
-            <a className="line-link text-sm text-[#5c2e30]" href="#new" data-testid="link-new">New in</a>
-            <a className="line-link text-sm text-[#5c2e30]" href="#personalise" data-testid="link-personalised">Personalised</a>
-            <a className="line-link text-sm text-[#5c2e30]" href="#story" data-testid="link-story">Our story</a>
+            <a className="line-link text-sm text-[#5c2e30]" href={homeHashPath('shop')} data-testid="link-shop">Shop all</a>
+            <a className="line-link text-sm text-[#5c2e30]" href={homeHashPath('new')} data-testid="link-new">New in</a>
+            <a className="line-link text-sm text-[#5c2e30]" href={homeHashPath('personalise')} data-testid="link-personalised">Personalised</a>
+            <a className="line-link text-sm text-[#5c2e30]" href={storyPath} data-testid="link-story">Our story</a>
           </nav>
           <div className="flex items-center gap-4">
             <button onClick={onSearch} className="text-[#5c2e30] transition-transform hover:scale-110" data-testid="button-search" aria-label="Search products"><Search size={20} strokeWidth={1.7} /></button>
@@ -267,11 +270,11 @@ function Home() {
   return <div id="top" className="grain min-h-screen overflow-hidden bg-[#f8f0e2]">
     <Header cartCount={cart.length} userEmail={userEmail} onAccount={() => setAccountOpen(true)} onCart={() => setCartOpen(true)} onSearch={() => setSearchOpen((v) => !v)} onMenu={() => setMenuOpen((v) => !v)} />
     {(searchOpen || menuOpen) && <div className="border-b border-[#5c2e30]/10 bg-[#f4e4d1] px-5 py-4 lg:px-10">
-      {searchOpen ? <div className="mx-auto flex max-w-[1320px] items-center gap-4"><Search size={19} className="text-[#d96d4d]" /><input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search for something lovely..." className="w-full bg-transparent text-lg text-[#5c2e30] outline-none placeholder:text-[#a1867f]" data-testid="input-search" /><button onClick={() => { setQuery(''); setSearchOpen(false); }} data-testid="button-close-search"><X size={19} /></button></div> : <nav className="mx-auto flex max-w-[1320px] flex-col gap-4 py-2"><a href="#shop" onClick={() => setMenuOpen(false)} data-testid="mobile-link-shop">Shop all</a><a href="#new" onClick={() => setMenuOpen(false)} data-testid="mobile-link-new">New in</a><a href="#personalise" onClick={() => setMenuOpen(false)} data-testid="mobile-link-personalised">Personalised</a><a href="#story" onClick={() => setMenuOpen(false)} data-testid="mobile-link-story">Our story</a></nav>}
+      {searchOpen ? <div className="mx-auto flex max-w-[1320px] items-center gap-4"><Search size={19} className="text-[#d96d4d]" /><input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search for something lovely..." className="w-full bg-transparent text-lg text-[#5c2e30] outline-none placeholder:text-[#a1867f]" data-testid="input-search" /><button onClick={() => { setQuery(''); setSearchOpen(false); }} data-testid="button-close-search"><X size={19} /></button></div> : <nav className="mx-auto flex max-w-[1320px] flex-col gap-4 py-2"><a href={homeHashPath('shop')} onClick={() => setMenuOpen(false)} data-testid="mobile-link-shop">Shop all</a><a href={homeHashPath('new')} onClick={() => setMenuOpen(false)} data-testid="mobile-link-new">New in</a><a href={homeHashPath('personalise')} onClick={() => setMenuOpen(false)} data-testid="mobile-link-personalised">Personalised</a><a href={storyPath} onClick={() => setMenuOpen(false)} data-testid="mobile-link-story">Our story</a></nav>}
     </div>}
     <main>
       <section className="mx-auto grid max-w-[1420px] gap-5 px-5 pb-20 pt-8 sm:pt-10 lg:grid-cols-[.92fr_1.08fr] lg:px-10 lg:pb-28 lg:pt-12">
-        <div className="flex flex-col justify-center py-10 lg:py-20"><p className="mono reveal text-[#d96d4d]">Tiny things. Big feelings.</p><h1 className="serif reveal reveal-delay-1 mt-5 max-w-[650px] text-[clamp(4rem,8.3vw,8.2rem)] font-medium leading-[.88] tracking-[-.07em] text-[#5c2e30]">Make it<br /><em className="text-[#d96d4d]">personal.</em></h1><p className="reveal reveal-delay-2 mt-7 max-w-[420px] text-base leading-7 text-[#765d5c]">Jewellery, keepsakes and little gifts for the people who make your world softer.</p><div className="reveal reveal-delay-3 mt-9 flex flex-wrap gap-3"><AppButton testId="button-shop-hero" onClick={() => document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' })}>Find a little something <ArrowRight size={15} /></AppButton><a href="#story" className="inline-flex items-center gap-2 rounded-full border border-[#5c2e30]/25 px-6 py-3 text-sm font-semibold text-[#5c2e30] transition hover:bg-[#f2dec8]" data-testid="link-hero-story">Why Proniqa?</a></div></div>
+        <div className="flex flex-col justify-center py-10 lg:py-20"><p className="mono reveal text-[#d96d4d]">Tiny things. Big feelings.</p><h1 className="serif reveal reveal-delay-1 mt-5 max-w-[650px] text-[clamp(4rem,8.3vw,8.2rem)] font-medium leading-[.88] tracking-[-.07em] text-[#5c2e30]">Make it<br /><em className="text-[#d96d4d]">personal.</em></h1><p className="reveal reveal-delay-2 mt-7 max-w-[420px] text-base leading-7 text-[#765d5c]">Jewellery, keepsakes and little gifts for the people who make your world softer.</p><div className="reveal reveal-delay-3 mt-9 flex flex-wrap gap-3"><AppButton testId="button-shop-hero" onClick={() => document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' })}>Find a little something <ArrowRight size={15} /></AppButton><a href={storyPath} className="inline-flex items-center gap-2 rounded-full border border-[#5c2e30]/25 px-6 py-3 text-sm font-semibold text-[#5c2e30] transition hover:bg-[#f2dec8]" data-testid="link-hero-story">Why Proniqa?</a></div></div>
         <div className="relative min-h-[470px] overflow-hidden rounded-[2rem] bg-[#e9c3af] sm:min-h-[600px]"><img src="/images/hero-boutique.jpg" alt="Proniqa jewellery and gifting collection" className="h-full w-full object-cover transition-transform duration-1000 hover:scale-105" data-testid="img-hero" /><div className="absolute bottom-6 left-6 rounded-full bg-[#fff8ed]/90 px-4 py-2 text-[11px] font-semibold tracking-wide text-[#5c2e30]">A small joy, beautifully chosen</div><div className="absolute right-5 top-5 flex h-20 w-20 items-center justify-center rounded-full bg-[#e8d16a] text-center text-[10px] font-bold uppercase leading-3 tracking-[.1em] text-[#5c2e30]">Made<br />with<br />feeling</div></div>
       </section>
       <section className="border-y border-[#5c2e30]/10 bg-[#edc96c] px-5 py-5 text-[#5c2e30]"><div className="mx-auto flex max-w-[1320px] items-center justify-between gap-5 overflow-hidden"><p className="mono whitespace-nowrap">Thoughtful goods for everyday magic</p><div className="hidden h-px flex-1 bg-[#5c2e30]/25 sm:block" /><p className="hidden text-sm sm:block">No occasion required <span className="ml-5">·</span> No occasion required <span className="ml-5">·</span></p><Sparkles size={18} /></div></section>
@@ -284,11 +287,11 @@ function Home() {
       </section>
       <section id="personalise" className="bg-[#5c2e30] px-5 py-20 text-[#fff8ed] lg:px-10 lg:py-28"><div className="mx-auto grid max-w-[1320px] items-center gap-12 lg:grid-cols-[.85fr_1.15fr]"><div><p className="mono text-[#edc96c]">Your story, framed</p><h2 className="serif mt-4 text-5xl leading-[.95] tracking-[-.05em] sm:text-7xl">The gift they<br /><em className="text-[#edc96c]">didn't see coming.</em></h2><p className="mt-7 max-w-[400px] leading-7 text-[#f2dcd3]">Turn a date, a place, or an inside joke into something they can keep on the shelf. Choose your frame, add your words, make it yours.</p><AppButton variant="light" className="mt-9" testId="button-customise" onClick={() => setFrameOpen(true)}>Customise a frame <ArrowRight size={15} /></AppButton></div><div className="relative mx-auto w-full max-w-[560px]"><img src="/images/frame-custom.jpg" alt="Personalised frame ready to customise" className="aspect-[1.18] w-full rounded-[1.6rem] object-cover" data-testid="img-custom-frame" /><div className="absolute -bottom-5 -left-3 rounded-xl bg-[#edc96c] px-5 py-4 text-[#5c2e30] shadow-xl sm:-left-6"><p className="mono">Made in your words</p><p className="serif mt-1 text-xl">for keeps.</p></div></div></div></section>
       <section id="new" className="mx-auto max-w-[1320px] px-5 py-20 lg:px-10 lg:py-28"><div className="grid gap-12 lg:grid-cols-[.75fr_1.25fr]"><div><p className="mono text-[#d96d4d]">Freshly chosen</p><h2 className="serif mt-3 text-5xl leading-[.98] tracking-[-.05em] text-[#5c2e30]">New things<br /><em>for new memories.</em></h2><p className="mt-6 max-w-[320px] leading-7 text-[#765d5c]">The pieces we are currently obsessed with. Limited little batches, because the best finds should still feel like finds.</p><a href="#shop" className="line-link mt-8 inline-block text-sm font-semibold text-[#5c2e30]" data-testid="link-discover-new">Discover new in <ArrowRight className="ml-2 inline" size={15} /></a></div><div className="grid grid-cols-2 gap-4 sm:gap-6"><div className="relative overflow-hidden rounded-[1.3rem] bg-[#e4c7a9]"><img src="/images/gifting-set.jpg" alt="Curated Proniqa gift box" className="h-full min-h-[300px] w-full object-cover mix-blend-multiply transition duration-700 hover:scale-105" /><span className="absolute bottom-4 left-4 rounded-full bg-[#fff8ed] px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#5c2e30]">For the host</span></div><div className="mt-10 overflow-hidden rounded-[1.3rem] bg-[#e8c5b7] sm:mt-20"><img src="/images/earrings-close.jpg" alt="Golden earrings detail" className="h-full min-h-[300px] w-full object-cover mix-blend-multiply transition duration-700 hover:scale-105" /><div className="p-4"><p className="serif text-xl text-[#5c2e30]">Small, but says a lot.</p><p className="mt-1 text-xs text-[#765d5c]">The everyday edit</p></div></div></div></div></section>
-      <section id="story" className="border-y border-[#5c2e30]/10 bg-[#f2dec8] px-5 py-20 lg:px-10 lg:py-28">
-        <div className="mx-auto grid max-w-[1320px] items-center gap-12 lg:grid-cols-[.9fr_1.1fr] lg:gap-20">
-          <div className="relative mx-auto w-full max-w-[520px]">
+      <section id="story" className="border-y border-[#5c2e30]/10 bg-[#f2dec8] px-5 py-20 lg:px-10 lg:py-24">
+        <div className="mx-auto grid max-w-[1100px] items-center gap-10 lg:grid-cols-[.9fr_1.1fr] lg:gap-16">
+          <div className="relative mx-auto w-full max-w-[430px]">
             <div className="overflow-hidden rounded-[2rem] bg-[#e5c4b0]">
-              <img src="/images/gifting-set.jpg" alt="A thoughtfully wrapped Proniqa gift" className="aspect-[.9] h-full w-full object-cover mix-blend-multiply transition-transform duration-700 hover:scale-105" data-testid="img-our-story" />
+              <img src="/images/gifting-set.jpg" alt="A thoughtfully wrapped Proniqa gift" className="aspect-[.95] h-full w-full object-cover mix-blend-multiply" data-testid="img-our-story" />
             </div>
             <div className="absolute -bottom-5 -right-3 rounded-2xl bg-[#edc96c] px-5 py-4 text-[#5c2e30] shadow-xl sm:-right-6">
               <p className="mono">No occasion required</p>
@@ -297,17 +300,9 @@ function Home() {
           </div>
           <div>
             <p className="mono text-[#d96d4d]">Our story</p>
-            <h2 className="serif mt-4 max-w-[680px] text-5xl leading-[.96] tracking-[-.05em] text-[#5c2e30] sm:text-7xl">The good stuff lives in the <em className="text-[#d96d4d]">little things.</em></h2>
-            <div className="mt-8 max-w-[590px] space-y-5 text-[15px] leading-7 text-[#765d5c]">
-              <p>Proniqa began with a simple question: what if the small moments got to feel just as special as the big ones?</p>
-              <p>A first coffee. A hard week. A random Tuesday. We make jewellery, keepsakes and gifts for the quiet ways we say, <em className="text-[#5c2e30]">I thought of you.</em></p>
-              <p>Everything is chosen to feel personal, easy to give and lovely to keep. Because the best gifts are not always grand. Sometimes they are just perfectly you.</p>
-            </div>
-            <div className="mt-9 grid max-w-[620px] gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl bg-[#fff8ed]/70 p-4"><p className="mono text-[#d96d4d]">01</p><p className="serif mt-2 text-xl text-[#5c2e30]">Thoughtful</p><p className="mt-1 text-xs leading-5 text-[#765d5c]">Chosen with feeling.</p></div>
-              <div className="rounded-2xl bg-[#fff8ed]/70 p-4"><p className="mono text-[#d96d4d]">02</p><p className="serif mt-2 text-xl text-[#5c2e30]">Personal</p><p className="mt-1 text-xs leading-5 text-[#765d5c]">Made to mean more.</p></div>
-              <div className="rounded-2xl bg-[#fff8ed]/70 p-4"><p className="mono text-[#d96d4d]">03</p><p className="serif mt-2 text-xl text-[#5c2e30]">Keepable</p><p className="mt-1 text-xs leading-5 text-[#765d5c]">For today and after.</p></div>
-            </div>
+            <h2 className="serif mt-4 max-w-[620px] text-5xl leading-[.96] tracking-[-.05em] text-[#5c2e30] sm:text-6xl">The good stuff lives in the <em className="text-[#d96d4d]">little things.</em></h2>
+            <p className="mt-6 max-w-[540px] text-[15px] leading-7 text-[#765d5c]">Proniqa began with a simple question: what if the small moments got to feel just as special as the big ones? We make jewellery, keepsakes and gifts for the quiet ways we say, <em className="text-[#5c2e30]">I thought of you.</em></p>
+            <a href={storyPath} className="line-link mt-7 inline-flex items-center text-sm font-semibold text-[#5c2e30]" data-testid="link-view-story">View more <ArrowRight className="ml-2" size={15} /></a>
           </div>
         </div>
       </section>
@@ -323,8 +318,77 @@ function Home() {
   </div>;
 }
 
+function OurStoryPage() {
+  const goHome = () => window.location.assign(appBasePath);
+  const goToShop = () => window.location.assign(homeHashPath('shop'));
+
+  return <div className="grain min-h-screen overflow-hidden bg-[#f8f0e2]">
+    <Header
+      cartCount={0}
+      onAccount={goHome}
+      onCart={goToShop}
+      onSearch={goToShop}
+      onMenu={goHome}
+    />
+    <main>
+      <section className="mx-auto grid max-w-[1320px] gap-10 px-5 pb-20 pt-16 lg:grid-cols-[.9fr_1.1fr] lg:items-end lg:px-10 lg:pb-28 lg:pt-24">
+        <div>
+          <p className="mono text-[#d96d4d]">A note from Proniqa</p>
+          <h1 className="serif mt-5 max-w-[720px] text-[clamp(4rem,8vw,8rem)] leading-[.88] tracking-[-.07em] text-[#5c2e30]">The good stuff lives in the <em className="text-[#d96d4d]">little things.</em></h1>
+        </div>
+        <p className="max-w-[440px] text-base leading-7 text-[#765d5c] lg:justify-self-end">We believe a gift does not need a big occasion. Sometimes it just needs to feel like you noticed, remembered, and chose with care.</p>
+      </section>
+
+      <section className="bg-[#5c2e30] px-5 py-20 text-[#fff8ed] lg:px-10 lg:py-28">
+        <div className="mx-auto grid max-w-[1320px] items-center gap-12 lg:grid-cols-[1.05fr_.95fr] lg:gap-24">
+          <div className="relative mx-auto w-full max-w-[600px]">
+            <img src="/images/gifting-set.jpg" alt="A thoughtfully wrapped Proniqa gift" className="aspect-[.95] w-full rounded-[2rem] object-cover mix-blend-screen opacity-90" data-testid="img-story-hero" />
+            <div className="absolute -bottom-5 -right-3 rounded-2xl bg-[#edc96c] px-5 py-4 text-[#5c2e30] shadow-xl sm:-right-6">
+              <p className="mono">Made with feeling</p>
+              <p className="serif mt-1 text-xl">for keeps.</p>
+            </div>
+          </div>
+          <div>
+            <p className="mono text-[#edc96c]">Why we started</p>
+            <h2 className="serif mt-4 max-w-[650px] text-5xl leading-[.96] tracking-[-.05em] sm:text-7xl">A little more meaning in the everyday.</h2>
+            <div className="mt-8 max-w-[560px] space-y-5 text-[15px] leading-7 text-[#f2dcd3]">
+              <p>Proniqa began with a simple question: what if the small moments got to feel just as special as the big ones?</p>
+              <p>A first coffee. A hard week. A random Tuesday. The days that rarely make it onto a calendar are often the ones we remember most.</p>
+              <p>So we choose the little things that help people mark them: jewellery for everyday becoming, gifts for the people who make life softer, and frames that hold a memory in place.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-5 py-20 lg:px-10 lg:py-28">
+        <div className="mx-auto max-w-[1320px]">
+          <div className="max-w-[690px]">
+            <p className="mono text-[#d96d4d]">What matters to us</p>
+            <h2 className="serif mt-4 text-5xl leading-[.96] tracking-[-.05em] text-[#5c2e30] sm:text-7xl">Chosen to feel like <em>you.</em></h2>
+          </div>
+          <div className="mt-12 grid gap-4 md:grid-cols-3">
+            <div className="rounded-[1.5rem] bg-[#f2dec8] p-7"><p className="mono text-[#d96d4d]">01 / Thoughtful</p><h3 className="serif mt-10 text-3xl text-[#5c2e30]">Chosen with feeling.</h3><p className="mt-4 text-sm leading-6 text-[#765d5d]">We look for pieces that make someone pause, smile, and think of the person who gave them.</p></div>
+            <div className="rounded-[1.5rem] bg-[#edc96c] p-7 text-[#5c2e30]"><p className="mono">02 / Personal</p><h3 className="serif mt-10 text-3xl">Made to mean more.</h3><p className="mt-4 text-sm leading-6 text-[#765d5d]">From initials to inside jokes, the best details are the ones only the two of you understand.</p></div>
+            <div className="rounded-[1.5rem] bg-[#d97b60] p-7 text-[#fff8ed]"><p className="mono">03 / Keepable</p><h3 className="serif mt-10 text-3xl">For today and after.</h3><p className="mt-4 text-sm leading-6 text-[#f8dfd7]">We make things that belong on a shelf, in a jewellery box, or wherever good memories live.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-[#5c2e30]/10 bg-[#f2dec8] px-5 py-20 text-center lg:px-10 lg:py-24">
+        <p className="mono text-[#d96d4d]">Keep the feeling going</p>
+        <h2 className="serif mx-auto mt-4 max-w-[760px] text-5xl leading-[.98] tracking-[-.05em] text-[#5c2e30] sm:text-7xl">Find something small that says <em>something big.</em></h2>
+        <button onClick={goToShop} className="mt-9 inline-flex items-center gap-3 rounded-full bg-[#5c2e30] px-6 py-3 text-sm font-semibold text-[#fff8ed] transition hover:-translate-y-0.5 hover:bg-[#74393a]" data-testid="button-story-shop">Shop the collection <ArrowRight size={15} /></button>
+      </section>
+    </main>
+    <footer className="bg-[#5c2e30] px-5 py-10 text-center text-[#f8e8d7] lg:px-10">
+      <a href={appBasePath} className="serif text-3xl text-[#fff8ed]" data-testid="link-story-footer-home">proniqa<span className="text-[#edc96c]">.</span></a>
+      <p className="mt-3 text-sm text-[#e7cfc1]">Small, personal things for the people who make ordinary days feel special.</p>
+    </footer>
+  </div>;
+}
+
 function Router() {
-  return <Switch><Route path="/" component={Home} /><Route component={NotFound} /></Switch>;
+  return <Switch><Route path="/" component={Home} /><Route path="/our-story" component={OurStoryPage} /><Route component={NotFound} /></Switch>;
 }
 
 function RoutedErrorBoundary({ children }: { children: ReactNode }) {

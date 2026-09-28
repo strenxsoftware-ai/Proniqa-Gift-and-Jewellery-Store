@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Proniqa Gift & Jewellery Store"
+description = "A warm, editorial storefront for Proniqa, a lifestyle gifting brand selling artificial jewellery, customised photo frames, thoughtful gifts, and keepsakes."
+version = "1.0.0"
+id = "artifacts/proniqa-store"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21379
+
+[services.development]
+run = "pnpm --filter @workspace/proniqa-store run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/proniqa-store", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/proniqa-store/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21379"
+BASE_PATH = "/"

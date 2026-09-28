@@ -18,3 +18,16 @@ expertMode = true
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 20000
+
+[userenv]
+
+[userenv.shared]
+VITE_FIREBASE_API_KEY = "AIzaSyCxouualO-GktBPY1U67wrkPIZqcwNCRac"
+VITE_FIREBASE_AUTH_DOMAIN = "proniqa-e3e19.firebaseapp.com"
+VITE_FIREBASE_PROJECT_ID = "proniqa-e3e19"
+VITE_FIREBASE_STORAGE_BUCKET = "proniqa-e3e19.firebasestorage.app"
+VITE_FIREBASE_MESSAGING_SENDER_ID = "786180753204"
+VITE_FIREBASE_APP_ID = "1:786180753204:web:3203a5ce5671b9826fc761"
+
+[nix]
+channel = "stable-25_05"

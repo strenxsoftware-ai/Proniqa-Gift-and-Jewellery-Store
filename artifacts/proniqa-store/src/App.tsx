@@ -5,7 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
 import { Route, Switch, useLocation, useParams, Router as WouterRouter } from 'wouter';
-import { ArrowRight, ChevronLeft, ChevronRight, Check, Heart, Loader2, LockKeyhole, Mail, Menu, Minus, Plus, Search, ShoppingBag, Sparkles, Upload, UserRound, X } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Check, Heart, Loader2, LockKeyhole, Mail, Menu, MessageCircle, Minus, Phone, Plus, Search, ShoppingBag, Sparkles, Upload, UserRound, X } from 'lucide-react';
 import {
   isFirebaseConfigured,
   placeOrder,
@@ -38,6 +38,7 @@ const homeHashPath = (hash: string) => `${appBasePath}#${hash}`;
 const storyPath = `${appBasePath}our-story`;
 const framesPath = `${appBasePath}customise`;
 const shopPath = `${appBasePath}shop`;
+const contactPath = `${appBasePath}contact`;
 const productPath = (id: string) => `${appBasePath}product/${encodeURIComponent(id)}`;
 
 function priceToNumber(price: string) {
@@ -353,7 +354,7 @@ function Home() {
       <section className="mx-auto max-w-[1320px] px-5 py-20 lg:px-10 lg:py-28"><div className="mb-10 flex items-end justify-between"><div><p className="mono text-[#d96d4d]">From people with good taste</p><h2 className="serif mt-2 text-4xl tracking-[-.04em] text-[#5c2e30] sm:text-5xl">Little notes, big smiles.</h2></div><div className="hidden gap-2 sm:flex"><button className="rounded-full border border-[#5c2e30]/25 p-3 hover:bg-[#f2dec8]" data-testid="button-testimonial-prev"><ChevronLeft size={16} /></button><button className="rounded-full border border-[#5c2e30]/25 p-3 hover:bg-[#f2dec8]" data-testid="button-testimonial-next"><ChevronRight size={16} /></button></div></div><div className="grid gap-4 md:grid-cols-3"><blockquote className="rounded-[1.4rem] bg-[#edc96c] p-7 text-[#5c2e30]"><span className="text-3xl">“</span><p className="serif mt-4 text-2xl leading-tight">The frame made my sister cry. In the best possible way.</p><footer className="mt-8 text-xs font-semibold tracking-wide">— ANANYA, MUMBAI</footer></blockquote><blockquote className="rounded-[1.4rem] bg-[#d97b60] p-7 text-[#fff8ed]"><span className="text-3xl">“</span><p className="serif mt-4 text-2xl leading-tight">Beautiful packaging, even better little surprises inside.</p><footer className="mt-8 text-xs font-semibold tracking-wide">— RIYA, BENGALURU</footer></blockquote><blockquote className="rounded-[1.4rem] bg-[#e6c9bc] p-7 text-[#5c2e30]"><span className="text-3xl">“</span><p className="serif mt-4 text-2xl leading-tight">I bought one gift and immediately added three things for myself.</p><footer className="mt-8 text-xs font-semibold tracking-wide">— MEERA, DELHI</footer></blockquote></div></section>
       <section className="bg-[#edc96c] px-5 py-16 text-center text-[#5c2e30] lg:py-20"><p className="mono">A little note, now and then</p><h2 className="serif mt-3 text-4xl tracking-[-.04em] sm:text-5xl">Come for the gifts.<br /><em>Stay for the good ideas.</em></h2><div className="mx-auto mt-7 flex max-w-[460px] overflow-hidden rounded-full border border-[#5c2e30]/30 bg-[#fff8ed]/55 p-1"><input placeholder="Your email address" className="min-w-0 flex-1 bg-transparent px-5 text-sm outline-none placeholder:text-[#866b65]" data-testid="input-email" /><button onClick={() => setNotice('You are on the list. See you soon.')} className="rounded-full bg-[#5c2e30] px-5 py-3 text-xs font-bold text-[#fff8ed]" data-testid="button-subscribe">Sign me up</button></div></section>
     </main>
-    <footer className="bg-[#5c2e30] px-5 py-12 text-[#f8e8d7] lg:px-10"><div className="mx-auto grid max-w-[1320px] gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr]"><div><a href="#top" className="serif text-3xl text-[#fff8ed]" data-testid="link-footer-home">proniqa<span className="text-[#edc96c]">.</span></a><p className="mt-4 max-w-[250px] text-sm leading-6 text-[#e7cfc1]">Small, personal things for the people who make ordinary days feel special.</p></div><div><p className="mono mb-4 text-[#edc96c]">Explore</p><div className="space-y-3 text-sm"><a className="block hover:text-[#edc96c]" href="#shop" data-testid="footer-link-shop">Shop all</a><a className="block hover:text-[#edc96c]" href="#new" data-testid="footer-link-new">New in</a><a className="block hover:text-[#edc96c]" href="#personalise" data-testid="footer-link-custom">Personalised</a></div></div><div><p className="mono mb-4 text-[#edc96c]">Help</p><div className="space-y-3 text-sm"><a className="block hover:text-[#edc96c]" href="#top" data-testid="footer-link-contact">Contact us</a><a className="block hover:text-[#edc96c]" href="#top" data-testid="footer-link-shipping">Shipping & returns</a><a className="block hover:text-[#edc96c]" href="#top" data-testid="footer-link-faq">FAQs</a></div></div><div><p className="mono mb-4 text-[#edc96c]">Find us</p><p className="text-sm leading-6 text-[#e7cfc1]">For the soft-hearted<br />@proniqa.studio</p></div></div><div className="mx-auto mt-12 max-w-[1320px] border-t border-[#f8e8d7]/20 pt-5 text-[11px] text-[#cdaea0]">© 2025 Proniqa Studio · Made for keeping</div></footer>
+    <footer className="bg-[#5c2e30] px-5 py-12 text-[#f8e8d7] lg:px-10"><div className="mx-auto grid max-w-[1320px] gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr]"><div><a href="#top" className="serif text-3xl text-[#fff8ed]" data-testid="link-footer-home">proniqa<span className="text-[#edc96c]">.</span></a><p className="mt-4 max-w-[250px] text-sm leading-6 text-[#e7cfc1]">Small, personal things for the people who make ordinary days feel special.</p></div><div><p className="mono mb-4 text-[#edc96c]">Explore</p><div className="space-y-3 text-sm"><a className="block hover:text-[#edc96c]" href="#shop" data-testid="footer-link-shop">Shop all</a><a className="block hover:text-[#edc96c]" href="#new" data-testid="footer-link-new">New in</a><a className="block hover:text-[#edc96c]" href="#personalise" data-testid="footer-link-custom">Personalised</a></div></div><div><p className="mono mb-4 text-[#edc96c]">Help</p><div className="space-y-3 text-sm"><a className="block hover:text-[#edc96c]" href={contactPath} data-testid="footer-link-contact">Contact us</a><a className="block hover:text-[#edc96c]" href="#top" data-testid="footer-link-shipping">Shipping & returns</a><a className="block hover:text-[#edc96c]" href="#top" data-testid="footer-link-faq">FAQs</a></div></div><div><p className="mono mb-4 text-[#edc96c]">Find us</p><p className="text-sm leading-6 text-[#e7cfc1]">For the soft-hearted<br />@proniqa.studio</p></div></div><div className="mx-auto mt-12 max-w-[1320px] border-t border-[#f8e8d7]/20 pt-5 text-[11px] text-[#cdaea0]">© 2025 Proniqa Studio · Made for keeping</div></footer>
     {notice && <div className="fixed bottom-5 left-1/2 z-[60] -translate-x-1/2 rounded-full bg-[#5c2e30] px-5 py-3 text-sm text-[#fff8ed] shadow-xl" data-testid="status-notice">{notice}</div>}
     <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} onRemove={removeFromCart} onAdd={addToCart} onCheckout={() => { setCartOpen(false); setCheckoutOpen(true); }} />
     <AuthModal open={accountOpen} onClose={() => setAccountOpen(false)} userEmail={userEmail} onNotice={showNotice} />
@@ -672,8 +673,34 @@ function OurStoryPage() {
   </div>;
 }
 
+function ContactPage() {
+  const goHome = () => window.location.assign(appBasePath);
+
+  return <div className="grain min-h-screen overflow-hidden bg-[#f8f0e2]">
+    <Header cartCount={0} onAccount={goHome} onCart={goHome} onSearch={goHome} onMenu={goHome} />
+    <main>
+      <section className="mx-auto max-w-[1320px] px-5 pb-16 pt-16 lg:px-10 lg:pb-24 lg:pt-24">
+        <a href={appBasePath} className="line-link text-sm text-[#765d5c]" data-testid="link-contact-back">← Back to Proniqa</a>
+        <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_.8fr] lg:items-end">
+          <div><p className="mono text-[#d96d4d]">We’d love to hear from you</p><h1 className="serif mt-4 max-w-[780px] text-[clamp(4rem,8vw,8rem)] leading-[.88] tracking-[-.07em] text-[#5c2e30]">Let’s keep<br /><em className="text-[#d96d4d]">in touch.</em></h1></div>
+          <p className="max-w-[380px] text-base leading-7 text-[#765d5c] lg:justify-self-end">Questions about an order, a frame, or finding the right little gift? Reach out and we’ll be happy to help.</p>
+        </div>
+      </section>
+      <section className="bg-[#f2dec8] px-5 py-16 lg:px-10 lg:py-24">
+        <div className="mx-auto grid max-w-[1000px] gap-4 md:grid-cols-3">
+          <a href="mailto:proniqa@gmail.com" className="group rounded-[1.6rem] bg-[#fff8ed] p-7 transition hover:-translate-y-1" data-testid="link-contact-email"><div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#edc96c] text-[#5c2e30]"><Mail size={20} /></div><p className="mono mt-10 text-[#d96d4d]">Email us</p><h2 className="serif mt-2 break-all text-2xl text-[#5c2e30] group-hover:text-[#d96d4d]">proniqa@gmail.com</h2><p className="mt-3 text-sm leading-6 text-[#765d5c]">For questions, orders, and frame ideas.</p></a>
+          <a href="tel:+917988487892" className="group rounded-[1.6rem] bg-[#5c2e30] p-7 text-[#fff8ed] transition hover:-translate-y-1" data-testid="link-contact-phone"><div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#edc96c] text-[#5c2e30]"><Phone size={20} /></div><p className="mono mt-10 text-[#edc96c]">Call us</p><h2 className="serif mt-2 text-3xl group-hover:text-[#edc96c]">7988487892</h2><p className="mt-3 text-sm leading-6 text-[#f2dcd3]">Tap to call us directly from your phone.</p></a>
+          <a href="https://wa.me/917988487892" target="_blank" rel="noreferrer" className="group rounded-[1.6rem] bg-[#d97b60] p-7 text-[#fff8ed] transition hover:-translate-y-1" data-testid="link-contact-whatsapp"><div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#fff8ed] text-[#5c2e30]"><MessageCircle size={20} /></div><p className="mono mt-10 text-[#fff0e8]">WhatsApp</p><h2 className="serif mt-2 text-3xl group-hover:text-[#edc96c]">7988487892</h2><p className="mt-3 text-sm leading-6 text-[#fff0e8]">Message us with your question or idea.</p></a>
+        </div>
+      </section>
+      <section className="bg-[#edc96c] px-5 py-16 text-center text-[#5c2e30] lg:px-10 lg:py-20"><p className="mono">Made with feeling</p><h2 className="serif mx-auto mt-3 max-w-[620px] text-4xl leading-tight sm:text-5xl">Small questions are always welcome.</h2><a href={shopPath} className="mt-8 inline-flex items-center gap-3 rounded-full bg-[#5c2e30] px-6 py-3 text-sm font-semibold text-[#fff8ed] transition hover:-translate-y-0.5" data-testid="button-contact-shop">Keep browsing <ArrowRight size={15} /></a></section>
+    </main>
+    <footer className="bg-[#5c2e30] px-5 py-10 text-center text-[#f8e8d7] lg:px-10"><a href={appBasePath} className="serif text-3xl text-[#fff8ed]" data-testid="link-contact-footer-home">proniqa<span className="text-[#edc96c]">.</span></a><p className="mt-3 text-sm text-[#e7cfc1]">Small, personal things for the people who make ordinary days feel special.</p></footer>
+  </div>;
+}
+
 function Router() {
-  return <Switch><Route path="/" component={Home} /><Route path="/our-story" component={OurStoryPage} /><Route path="/shop" component={AllProductsPage} /><Route path="/customise" component={FramesPage} /><Route path="/product/:id" component={ProductPage} /><Route component={NotFound} /></Switch>;
+  return <Switch><Route path="/" component={Home} /><Route path="/our-story" component={OurStoryPage} /><Route path="/shop" component={AllProductsPage} /><Route path="/customise" component={FramesPage} /><Route path="/contact" component={ContactPage} /><Route path="/product/:id" component={ProductPage} /><Route component={NotFound} /></Switch>;
 }
 
 function RoutedErrorBoundary({ children }: { children: ReactNode }) {

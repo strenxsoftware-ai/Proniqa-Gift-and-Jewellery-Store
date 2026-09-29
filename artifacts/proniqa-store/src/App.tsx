@@ -37,6 +37,7 @@ const appBasePath = import.meta.env.BASE_URL;
 const homeHashPath = (hash: string) => `${appBasePath}#${hash}`;
 const storyPath = `${appBasePath}our-story`;
 const framesPath = `${appBasePath}customise`;
+const shopPath = `${appBasePath}shop`;
 const productPath = (id: string) => `${appBasePath}product/${encodeURIComponent(id)}`;
 
 function priceToNumber(price: string) {
@@ -322,7 +323,7 @@ function Home() {
       </section>
       <section className="border-y border-[#5c2e30]/10 bg-[#edc96c] px-5 py-5 text-[#5c2e30]"><div className="mx-auto flex max-w-[1320px] items-center justify-between gap-5 overflow-hidden"><p className="mono whitespace-nowrap">Thoughtful goods for everyday magic</p><div className="hidden h-px flex-1 bg-[#5c2e30]/25 sm:block" /><p className="hidden text-sm sm:block">No occasion required <span className="ml-5">·</span> No occasion required <span className="ml-5">·</span></p><Sparkles size={18} /></div></section>
       <section id="shop" className="mx-auto max-w-[1320px] px-5 py-20 lg:px-10 lg:py-28">
-        <div className="mb-9 flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="mono text-[#d96d4d]">The good stuff</p><h2 className="serif mt-2 text-4xl tracking-[-.04em] text-[#5c2e30] sm:text-5xl">Pick your kind of lovely.</h2></div><a href="#shop" className="line-link text-sm font-semibold text-[#5c2e30]" data-testid="link-view-all">View everything <ArrowRight className="ml-2 inline" size={15} /></a></div>
+        <div className="mb-9 flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="mono text-[#d96d4d]">The good stuff</p><h2 className="serif mt-2 text-4xl tracking-[-.04em] text-[#5c2e30] sm:text-5xl">Pick your kind of lovely.</h2></div><a href={shopPath} className="line-link text-sm font-semibold text-[#5c2e30]" data-testid="link-view-all">View everything <ArrowRight className="ml-2 inline" size={15} /></a></div>
         {catalogError && <div className="mb-6 rounded-2xl border border-[#d96d4d]/30 bg-[#f7d8d2] px-4 py-3 text-sm leading-6 text-[#6d3030]" role="alert" data-testid="status-catalog-error">{catalogError}</div>}
         <div className="mb-10 flex gap-2 overflow-x-auto pb-2 hide-scrollbar">{categories.map((item) => <button key={item} onClick={() => setCategory(item)} className={`whitespace-nowrap rounded-full border px-5 py-2.5 text-sm transition ${category === item ? 'border-[#5c2e30] bg-[#5c2e30] text-[#fff8ed]' : 'border-[#5c2e30]/20 text-[#765d5c] hover:border-[#5c2e30]/50'}`} data-testid={`button-category-${item.toLowerCase().replace(' ', '-')}`}>{item}</button>)}</div>
          <div className="grid grid-cols-2 gap-x-3 gap-y-10 sm:grid-cols-3 sm:gap-x-5 lg:gap-x-7">{filtered.map((product) => <ProductCard key={product.id} product={product} wished={wishlisted.includes(product.id)} onWish={() => toggleWish(product.id)} onAdd={() => addToCart(product)} onOpen={() => window.location.assign(productPath(product.id))} />)}</div>
@@ -358,6 +359,88 @@ function Home() {
     <AuthModal open={accountOpen} onClose={() => setAccountOpen(false)} userEmail={userEmail} onNotice={showNotice} />
     <FrameEnquiryModal open={frameOpen} onClose={() => setFrameOpen(false)} userId={userId} defaultEmail={userEmail} onDone={showNotice} />
     <CheckoutModal open={checkoutOpen} onClose={() => setCheckoutOpen(false)} cart={cart} userId={userId} defaultEmail={userEmail} onComplete={() => setCart([])} onDone={showNotice} />
+  </div>;
+}
+
+function AllProductsPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [frames, setFrames] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [catalogError, setCatalogError] = useState('');
+  const [category, setCategory] = useState('All products');
+  const [audience, setAudience] = useState('Everyone');
+  const [sortBy, setSortBy] = useState('featured');
+  const [cart, setCart] = useState<Product[]>([]);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [wishlisted, setWishlisted] = useState<string[]>([]);
+  const [notice, setNotice] = useState('');
+
+  useEffect(() => {
+    if (!isFirebaseConfigured) {
+      setLoading(false);
+      setCatalogError('Firebase is not configured, so the live catalog cannot be loaded yet.');
+      return () => undefined;
+    }
+
+    let productsReady = false;
+    let framesReady = false;
+    const markReady = () => { if (productsReady && framesReady) setLoading(false); };
+    const unsubscribeProducts = subscribeToProducts(
+      (remoteProducts) => { setProducts(remoteProducts); productsReady = true; markReady(); },
+      () => { setCatalogError('We could not read the Firebase products collection. Check your Firestore rules and project settings.'); productsReady = true; markReady(); },
+    );
+    const unsubscribeFrames = subscribeToFrames(
+      (remoteFrames) => { setFrames(remoteFrames); framesReady = true; markReady(); },
+      () => { setCatalogError('We could not read the Firebase frames collection. Check your Firestore rules and project settings.'); framesReady = true; markReady(); },
+    );
+    return () => { unsubscribeProducts(); unsubscribeFrames(); };
+  }, []);
+
+  const catalog = useMemo(() => [...products, ...frames], [products, frames]);
+  const filteredProducts = useMemo(() => {
+    const filtered = catalog.filter((item) => {
+      const matchesCategory = category === 'All products' || item.category === category;
+      const matchesAudience = audience === 'Everyone' || item.audience?.includes(audience.toLowerCase());
+      return matchesCategory && matchesAudience;
+    });
+    return [...filtered].sort((left, right) => {
+      if (sortBy === 'price-low') return priceToNumber(left.price) - priceToNumber(right.price);
+      if (sortBy === 'price-high') return priceToNumber(right.price) - priceToNumber(left.price);
+      return 0;
+    });
+  }, [catalog, category, audience, sortBy]);
+
+  const goHome = () => window.location.assign(appBasePath);
+  const addToCart = (product: Product) => { setCart((current) => [...current, product]); setNotice(`${product.name} is in your bag`); setCartOpen(true); window.setTimeout(() => setNotice(''), 2600); };
+  const removeFromCart = (id: string) => setCart((current) => { const index = current.findIndex((item) => item.id === id); return index >= 0 ? [...current.slice(0, index), ...current.slice(index + 1)] : current; });
+  const toggleWish = (id: string) => setWishlisted((current) => current.includes(id) ? current.filter((itemId) => itemId !== id) : [...current, id]);
+
+  return <div className="grain min-h-screen overflow-hidden bg-[#f8f0e2]">
+    <Header cartCount={cart.length} onAccount={goHome} onCart={() => setCartOpen(true)} onSearch={goHome} onMenu={goHome} />
+    <main>
+      <section className="mx-auto max-w-[1320px] px-5 pb-12 pt-16 lg:px-10 lg:pb-14 lg:pt-24">
+        <a href={appBasePath} className="line-link text-sm text-[#765d5c]" data-testid="link-shop-back">← Back to Proniqa</a>
+        <div className="mt-10 flex flex-col justify-between gap-6 sm:flex-row sm:items-end"><div><p className="mono text-[#d96d4d]">The complete collection</p><h1 className="serif mt-4 text-[clamp(4rem,8vw,7.5rem)] leading-[.88] tracking-[-.07em] text-[#5c2e30]">Find your<br /><em className="text-[#d96d4d]">little something.</em></h1></div><p className="max-w-[290px] text-sm leading-6 text-[#765d5c]">Jewellery, frames, gifts and keepsakes for every kind of feeling.</p></div>
+      </section>
+      <section className="border-y border-[#5c2e30]/10 bg-[#f2dec8] px-5 py-5 lg:px-10">
+        <div className="mx-auto grid max-w-[1320px] gap-3 sm:grid-cols-3">
+          <label className="flex items-center gap-3 rounded-xl bg-[#fff8ed]/75 px-4 py-3"><span className="mono shrink-0 text-[#d96d4d]">Type</span><select value={category} onChange={(event) => setCategory(event.target.value)} className="min-w-0 flex-1 bg-transparent text-sm text-[#5c2e30] outline-none" data-testid="select-shop-category"><option>All products</option><option>Jewellery</option><option>Personalised</option><option>Gifting</option></select></label>
+          <label className="flex items-center gap-3 rounded-xl bg-[#fff8ed]/75 px-4 py-3"><span className="mono shrink-0 text-[#d96d4d]">For</span><select value={audience} onChange={(event) => setAudience(event.target.value)} className="min-w-0 flex-1 bg-transparent text-sm text-[#5c2e30] outline-none" data-testid="select-shop-audience"><option value="Everyone">Everyone</option><option value="Girls">Gifts for girls</option><option value="Boys">Gifts for boys</option><option value="Couples">Couple gifts</option></select></label>
+          <label className="flex items-center gap-3 rounded-xl bg-[#fff8ed]/75 px-4 py-3"><span className="mono shrink-0 text-[#d96d4d]">Sort</span><select value={sortBy} onChange={(event) => setSortBy(event.target.value)} className="min-w-0 flex-1 bg-transparent text-sm text-[#5c2e30] outline-none" data-testid="select-shop-sort"><option value="featured">Featured</option><option value="price-low">Low price to high</option><option value="price-high">High price to low</option></select></label>
+        </div>
+      </section>
+      <section className="mx-auto max-w-[1320px] px-5 py-16 lg:px-10 lg:py-24">
+        <div className="mb-8 flex items-end justify-between gap-4"><div><p className="mono text-[#d96d4d]">Shop all</p><h2 className="serif mt-2 text-4xl tracking-[-.04em] text-[#5c2e30] sm:text-5xl">Good things, all together.</h2></div><p className="text-sm text-[#765d5c]" data-testid="text-shop-count">{filteredProducts.length} {filteredProducts.length === 1 ? 'piece' : 'pieces'}</p></div>
+        {catalogError && <div className="mb-6 rounded-2xl border border-[#d96d4d]/30 bg-[#f7d8d2] px-4 py-3 text-sm leading-6 text-[#6d3030]" role="alert" data-testid="status-shop-error">{catalogError}</div>}
+        {loading && <div className="flex min-h-[260px] items-center justify-center"><Loader2 size={28} className="animate-spin text-[#d96d4d]" /></div>}
+        {!loading && filteredProducts.length > 0 && <div className="grid grid-cols-2 gap-x-3 gap-y-10 sm:grid-cols-3 sm:gap-x-5 lg:gap-x-7">{filteredProducts.map((product) => <ProductCard key={`${product.collection}-${product.id}`} product={product} wished={wishlisted.includes(`${product.collection}-${product.id}`)} onWish={() => toggleWish(`${product.collection}-${product.id}`)} onAdd={() => addToCart(product)} onOpen={() => window.location.assign(product.collection === 'frames' ? framesPath : productPath(product.id))} />)}</div>}
+        {!loading && filteredProducts.length === 0 && <div className="rounded-3xl bg-[#f2dec8] py-20 text-center"><p className="serif text-2xl text-[#5c2e30]">Nothing matches that filter yet.</p><button onClick={() => { setCategory('All products'); setAudience('Everyone'); setSortBy('featured'); }} className="mt-4 text-sm underline" data-testid="button-clear-shop-filters">Clear filters</button></div>}
+      </section>
+    </main>
+    {notice && <div className="fixed bottom-5 left-1/2 z-[60] -translate-x-1/2 rounded-full bg-[#5c2e30] px-5 py-3 text-sm text-[#fff8ed] shadow-xl" data-testid="status-shop-notice">{notice}</div>}
+    <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} onRemove={removeFromCart} onAdd={(item) => setCart((current) => [...current, item])} onCheckout={() => { setCartOpen(false); setCheckoutOpen(true); }} />
+    <CheckoutModal open={checkoutOpen} onClose={() => setCheckoutOpen(false)} cart={cart} onComplete={() => setCart([])} onDone={(message) => { setNotice(message); window.setTimeout(() => setNotice(''), 3200); }} />
   </div>;
 }
 
@@ -590,7 +673,7 @@ function OurStoryPage() {
 }
 
 function Router() {
-  return <Switch><Route path="/" component={Home} /><Route path="/our-story" component={OurStoryPage} /><Route path="/customise" component={FramesPage} /><Route path="/product/:id" component={ProductPage} /><Route component={NotFound} /></Switch>;
+  return <Switch><Route path="/" component={Home} /><Route path="/our-story" component={OurStoryPage} /><Route path="/shop" component={AllProductsPage} /><Route path="/customise" component={FramesPage} /><Route path="/product/:id" component={ProductPage} /><Route component={NotFound} /></Switch>;
 }
 
 function RoutedErrorBoundary({ children }: { children: ReactNode }) {

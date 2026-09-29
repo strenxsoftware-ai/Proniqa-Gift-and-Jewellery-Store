@@ -57,6 +57,8 @@ export type StoreProduct = {
   dimensions?: string;
   care?: string;
   stock?: string;
+  audience?: string[];
+  collection?: 'products' | 'frames';
 };
 
 export type OrderItem = {
@@ -65,7 +67,16 @@ export type OrderItem = {
   price: string;
 };
 
-function mapStoreItem(id: string, data: Record<string, unknown>, defaultCategory: string): StoreProduct {
+function normalizeAudience(value: string) {
+  const normalized = value.toLowerCase().trim();
+  if (/(girl|women|female|her)/.test(normalized)) return 'girls';
+  if (/(boy|men|male|him)/.test(normalized)) return 'boys';
+  if (/(couple|partner|duo|both)/.test(normalized)) return 'couples';
+  if (/(everyone|friend|family|anyone)/.test(normalized)) return 'everyone';
+  return normalized;
+}
+
+function mapStoreItem(id: string, data: Record<string, unknown>, defaultCategory: string, source: 'products' | 'frames'): StoreProduct {
   const rawPrice = data.price ?? data.amount ?? data.cost;
   const numericPrice =
     typeof rawPrice === 'number'
@@ -86,6 +97,10 @@ function mapStoreItem(id: string, data: Record<string, unknown>, defaultCategory
   const images = Array.isArray(rawImages)
     ? rawImages.map((image: unknown) => String(image)).filter(Boolean)
     : [];
+  const rawAudienceValues = [data.audience, data.recipient, data.gender, data.target, data.giftFor, data.tags]
+    .flatMap((value) => Array.isArray(value) ? value : value ? [value] : [])
+    .map((value) => normalizeAudience(String(value)))
+    .filter(Boolean);
 
   return {
     id,
@@ -95,6 +110,8 @@ function mapStoreItem(id: string, data: Record<string, unknown>, defaultCategory
     image: primaryImage,
     images: images.length > 0 ? Array.from(new Set([primaryImage, ...images])) : [primaryImage],
     tone: String(data.tone ?? 'peach'),
+    collection: source,
+    ...(rawAudienceValues.length > 0 ? { audience: Array.from(new Set(rawAudienceValues)) } : {}),
     ...(data.badge ? { badge: String(data.badge) } : {}),
     ...(data.description || data.shortDescription ? { description: String(data.description ?? data.shortDescription) } : {}),
     ...(Array.isArray(data.details) ? { details: data.details.map((detail: unknown) => String(detail)).filter(Boolean) } : {}),
@@ -114,7 +131,7 @@ export function subscribeToProducts(
   return onSnapshot(
     collection(db, 'products'),
     (snapshot) => {
-      const products = snapshot.docs.map((productDoc) => mapStoreItem(productDoc.id, productDoc.data(), 'Gifting'));
+      const products = snapshot.docs.map((productDoc) => mapStoreItem(productDoc.id, productDoc.data(), 'Gifting', 'products'));
 
       onProducts(products);
     },
@@ -134,7 +151,7 @@ export function subscribeToFrames(
   return onSnapshot(
     collection(db, 'frames'),
     (snapshot) => {
-      const frames = snapshot.docs.map((frameDoc) => mapStoreItem(frameDoc.id, frameDoc.data(), 'Personalised'));
+      const frames = snapshot.docs.map((frameDoc) => mapStoreItem(frameDoc.id, frameDoc.data(), 'Personalised', 'frames'));
       onFrames(frames);
     },
     (error) => {

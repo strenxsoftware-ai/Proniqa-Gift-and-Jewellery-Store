@@ -48,8 +48,15 @@ export type StoreProduct = {
   price: string;
   category: string;
   image: string;
+  images: string[];
   tone: string;
   badge?: string;
+  description?: string;
+  details?: string[];
+  material?: string;
+  dimensions?: string;
+  care?: string;
+  stock?: string;
 };
 
 export type OrderItem = {
@@ -84,15 +91,27 @@ export function subscribeToProducts(
           personalised: 'Personalised',
           gifting: 'Gifting',
         }[rawCategory.toLowerCase()] ?? rawCategory;
+        const primaryImage = String(data.image ?? data.imageUrl ?? data.photoUrl ?? '/images/gifting-set.jpg');
+        const rawImages = data.images ?? data.imageUrls;
+        const images = Array.isArray(rawImages)
+          ? rawImages.map((image: unknown) => String(image)).filter(Boolean)
+          : [];
 
         return {
           id: productDoc.id,
           name: String(data.name ?? data.title ?? 'Proniqa piece'),
           price: numericPrice,
           category,
-          image: String(data.image ?? data.imageUrl ?? data.photoUrl ?? '/images/gifting-set.jpg'),
+          image: primaryImage,
+          images: images.length > 0 ? Array.from(new Set([primaryImage, ...images])) : [primaryImage],
           tone: String(data.tone ?? 'peach'),
           ...(data.badge ? { badge: String(data.badge) } : {}),
+          ...(data.description || data.shortDescription ? { description: String(data.description ?? data.shortDescription) } : {}),
+          ...(Array.isArray(data.details) ? { details: data.details.map((detail: unknown) => String(detail)).filter(Boolean) } : {}),
+          ...(data.material || data.materials ? { material: String(data.material ?? data.materials) } : {}),
+          ...(data.dimensions || data.size ? { dimensions: String(data.dimensions ?? data.size) } : {}),
+          ...(data.care ? { care: String(data.care) } : {}),
+          ...(data.stock || data.availability ? { stock: String(data.stock ?? data.availability) } : {}),
         };
       });
 

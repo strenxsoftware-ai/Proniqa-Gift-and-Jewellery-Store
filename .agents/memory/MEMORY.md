@@ -1,0 +1,1 @@
+- [Firestore collection access](firestore-collection-access.md) — browser storefront reads need explicit Firestore rules for every public catalog collection.

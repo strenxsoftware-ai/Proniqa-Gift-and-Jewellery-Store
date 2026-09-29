@@ -65,6 +65,46 @@ export type OrderItem = {
   price: string;
 };
 
+function mapStoreItem(id: string, data: Record<string, unknown>, defaultCategory: string): StoreProduct {
+  const rawPrice = data.price ?? data.amount ?? data.cost;
+  const numericPrice =
+    typeof rawPrice === 'number'
+      ? `₹${rawPrice.toLocaleString('en-IN')}`
+      : typeof rawPrice === 'string' && /^\d[\d,\s]*$/.test(rawPrice.trim())
+        ? `₹${Number(rawPrice.replace(/[,\s]/g, '')).toLocaleString('en-IN')}`
+        : String(rawPrice ?? 'Price on request');
+  const rawCategory = String(data.category ?? data.type ?? defaultCategory).trim();
+  const category = {
+    jewelry: 'Jewellery',
+    jewellery: 'Jewellery',
+    personalized: 'Personalised',
+    personalised: 'Personalised',
+    gifting: 'Gifting',
+  }[rawCategory.toLowerCase()] ?? rawCategory;
+  const primaryImage = String(data.image ?? data.imageUrl ?? data.photoUrl ?? '/images/gifting-set.jpg');
+  const rawImages = data.images ?? data.imageUrls;
+  const images = Array.isArray(rawImages)
+    ? rawImages.map((image: unknown) => String(image)).filter(Boolean)
+    : [];
+
+  return {
+    id,
+    name: String(data.name ?? data.title ?? 'Proniqa piece'),
+    price: numericPrice,
+    category,
+    image: primaryImage,
+    images: images.length > 0 ? Array.from(new Set([primaryImage, ...images])) : [primaryImage],
+    tone: String(data.tone ?? 'peach'),
+    ...(data.badge ? { badge: String(data.badge) } : {}),
+    ...(data.description || data.shortDescription ? { description: String(data.description ?? data.shortDescription) } : {}),
+    ...(Array.isArray(data.details) ? { details: data.details.map((detail: unknown) => String(detail)).filter(Boolean) } : {}),
+    ...(data.material || data.materials ? { material: String(data.material ?? data.materials) } : {}),
+    ...(data.dimensions || data.size ? { dimensions: String(data.dimensions ?? data.size) } : {}),
+    ...(data.care ? { care: String(data.care) } : {}),
+    ...(data.stock || data.availability ? { stock: String(data.stock ?? data.availability) } : {}),
+  };
+}
+
 export function subscribeToProducts(
   onProducts: (products: StoreProduct[]) => void,
   onError?: (error: Error) => void,
@@ -74,51 +114,31 @@ export function subscribeToProducts(
   return onSnapshot(
     collection(db, 'products'),
     (snapshot) => {
-      const products = snapshot.docs.map((productDoc) => {
-        const data = productDoc.data();
-        const rawPrice = data.price ?? data.amount ?? data.cost;
-        const numericPrice =
-          typeof rawPrice === 'number'
-            ? `₹${rawPrice.toLocaleString('en-IN')}`
-            : typeof rawPrice === 'string' && /^\d[\d,\s]*$/.test(rawPrice.trim())
-              ? `₹${Number(rawPrice.replace(/[,\s]/g, '')).toLocaleString('en-IN')}`
-              : String(rawPrice ?? 'Price on request');
-        const rawCategory = String(data.category ?? data.type ?? 'Gifting').trim();
-        const category = {
-          jewelry: 'Jewellery',
-          jewellery: 'Jewellery',
-          personalized: 'Personalised',
-          personalised: 'Personalised',
-          gifting: 'Gifting',
-        }[rawCategory.toLowerCase()] ?? rawCategory;
-        const primaryImage = String(data.image ?? data.imageUrl ?? data.photoUrl ?? '/images/gifting-set.jpg');
-        const rawImages = data.images ?? data.imageUrls;
-        const images = Array.isArray(rawImages)
-          ? rawImages.map((image: unknown) => String(image)).filter(Boolean)
-          : [];
-
-        return {
-          id: productDoc.id,
-          name: String(data.name ?? data.title ?? 'Proniqa piece'),
-          price: numericPrice,
-          category,
-          image: primaryImage,
-          images: images.length > 0 ? Array.from(new Set([primaryImage, ...images])) : [primaryImage],
-          tone: String(data.tone ?? 'peach'),
-          ...(data.badge ? { badge: String(data.badge) } : {}),
-          ...(data.description || data.shortDescription ? { description: String(data.description ?? data.shortDescription) } : {}),
-          ...(Array.isArray(data.details) ? { details: data.details.map((detail: unknown) => String(detail)).filter(Boolean) } : {}),
-          ...(data.material || data.materials ? { material: String(data.material ?? data.materials) } : {}),
-          ...(data.dimensions || data.size ? { dimensions: String(data.dimensions ?? data.size) } : {}),
-          ...(data.care ? { care: String(data.care) } : {}),
-          ...(data.stock || data.availability ? { stock: String(data.stock ?? data.availability) } : {}),
-        };
-      });
+      const products = snapshot.docs.map((productDoc) => mapStoreItem(productDoc.id, productDoc.data(), 'Gifting'));
 
       onProducts(products);
     },
     (error) => {
       console.error('Proniqa could not read the Firestore products collection.', error);
+      onError?.(error);
+    },
+  );
+}
+
+export function subscribeToFrames(
+  onFrames: (frames: StoreProduct[]) => void,
+  onError?: (error: Error) => void,
+) {
+  if (!db) return () => undefined;
+
+  return onSnapshot(
+    collection(db, 'frames'),
+    (snapshot) => {
+      const frames = snapshot.docs.map((frameDoc) => mapStoreItem(frameDoc.id, frameDoc.data(), 'Personalised'));
+      onFrames(frames);
+    },
+    (error) => {
+      console.error('Proniqa could not read the Firestore frames collection.', error);
       onError?.(error);
     },
   );

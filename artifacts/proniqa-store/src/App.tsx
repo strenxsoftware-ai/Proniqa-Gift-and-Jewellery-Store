@@ -14,6 +14,7 @@ import {
   signOutCustomer,
   submitFrameEnquiry,
   subscribeToAuth,
+  subscribeToFrames,
   subscribeToProducts,
   type StoreProduct,
 } from '@/lib/firebase';
@@ -35,6 +36,7 @@ const categories = ['All pieces', 'Jewellery', 'Personalised', 'Gifting'];
 const appBasePath = import.meta.env.BASE_URL;
 const homeHashPath = (hash: string) => `${appBasePath}#${hash}`;
 const storyPath = `${appBasePath}our-story`;
+const framesPath = `${appBasePath}customise`;
 const productPath = (id: string) => `${appBasePath}product/${encodeURIComponent(id)}`;
 
 function priceToNumber(price: string) {
@@ -89,6 +91,34 @@ function ProductCard({ product, wished, onWish, onAdd, onOpen }: { product: Prod
       </div>
     </article>
   );
+}
+
+function FrameCard({ frame, onChoose }: { frame: Product; onChoose: () => void }) {
+  const [selectedImage, setSelectedImage] = useState(0);
+  const images = frame.images.length > 0 ? frame.images : [frame.image];
+
+  return <article className="overflow-hidden rounded-[1.6rem] bg-[#fff8ed] shadow-sm" data-testid={`card-frame-${frame.id}`}>
+    <div className="grid gap-3 p-3 sm:grid-cols-[1fr_72px]">
+      <div className="overflow-hidden rounded-[1.2rem] bg-[#ead8c4]">
+        <img src={images[selectedImage]} alt={frame.name} className="aspect-[1.1] h-full w-full object-cover mix-blend-multiply" data-testid={`img-frame-${frame.id}`} />
+      </div>
+      <div className="order-first flex gap-2 overflow-x-auto sm:order-none sm:flex-col">
+        {images.map((image, index) => <button key={`${image}-${index}`} onClick={() => setSelectedImage(index)} className={`shrink-0 overflow-hidden rounded-lg border-2 ${selectedImage === index ? 'border-[#d96d4d]' : 'border-transparent opacity-70'}`} data-testid={`button-frame-image-${frame.id}-${index}`}><img src={image} alt={`${frame.name} view ${index + 1}`} className="h-16 w-16 object-cover sm:h-[66px] sm:w-[66px]" /></button>)}
+      </div>
+    </div>
+    <div className="p-5 pt-2">
+      <div className="flex items-start justify-between gap-4"><div><p className="mono text-[#d96d4d]">{frame.category}{frame.badge ? ` · ${frame.badge}` : ''}</p><h2 className="serif mt-2 text-3xl leading-none text-[#5c2e30]" data-testid={`text-frame-${frame.id}`}>{frame.name}</h2></div><p className="whitespace-nowrap text-sm font-semibold text-[#5c2e30]" data-testid={`text-frame-price-${frame.id}`}>{frame.price}</p></div>
+      {frame.description && <p className="mt-4 text-sm leading-6 text-[#765d5c]" data-testid={`text-frame-description-${frame.id}`}>{frame.description}</p>}
+      <div className="mt-5 grid gap-3 border-t border-[#5c2e30]/10 pt-4 sm:grid-cols-2">
+        {frame.material && <div><p className="mono text-[#d96d4d]">Material</p><p className="mt-1 text-sm leading-5 text-[#765d5c]">{frame.material}</p></div>}
+        {frame.dimensions && <div><p className="mono text-[#d96d4d]">Size</p><p className="mt-1 text-sm leading-5 text-[#765d5c]">{frame.dimensions}</p></div>}
+        {frame.stock && <div><p className="mono text-[#d96d4d]">Availability</p><p className="mt-1 text-sm leading-5 text-[#765d5c]">{frame.stock}</p></div>}
+        {frame.care && <div><p className="mono text-[#d96d4d]">Care</p><p className="mt-1 text-sm leading-5 text-[#765d5c]">{frame.care}</p></div>}
+      </div>
+      {frame.details && frame.details.length > 0 && <div className="mt-5 border-t border-[#5c2e30]/10 pt-4"><p className="mono text-[#d96d4d]">Good to know</p><ul className="mt-2 space-y-1 text-sm leading-6 text-[#765d5c]">{frame.details.map((detail) => <li key={detail} className="flex gap-2"><span className="text-[#d96d4d]">·</span>{detail}</li>)}</ul></div>}
+      <button onClick={onChoose} className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#5c2e30] px-5 py-3 text-sm font-semibold text-[#fff8ed] transition hover:bg-[#74393a]" data-testid={`button-choose-frame-${frame.id}`}>Customise this frame <ArrowRight size={15} /></button>
+    </div>
+  </article>;
 }
 
 function CartDrawer({ open, onClose, cart, onRemove, onAdd, onCheckout }: { open: boolean; onClose: () => void; cart: Product[]; onRemove: (id: string) => void; onAdd: (product: Product) => void; onCheckout: () => void }) {
@@ -165,7 +195,7 @@ function AuthModal({ open, onClose, userEmail, onNotice }: { open: boolean; onCl
   </ModalShell>;
 }
 
-function FrameEnquiryModal({ open, onClose, userId, defaultEmail, onDone }: { open: boolean; onClose: () => void; userId?: string; defaultEmail?: string; onDone: (message: string) => void }) {
+function FrameEnquiryModal({ open, onClose, userId, defaultEmail, frameName, onDone }: { open: boolean; onClose: () => void; userId?: string; defaultEmail?: string; frameName?: string; onDone: (message: string) => void }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState(defaultEmail ?? '');
   const [note, setNote] = useState('');
@@ -174,6 +204,7 @@ function FrameEnquiryModal({ open, onClose, userId, defaultEmail, onDone }: { op
   const [busy, setBusy] = useState(false);
 
   useEffect(() => { if (defaultEmail) setEmail(defaultEmail); }, [defaultEmail]);
+  useEffect(() => { if (open) setNote(frameName ? `Frame: ${frameName}\n` : ''); }, [open, frameName]);
   if (!open) return null;
 
   const handleSubmit = async (event: FormEvent) => {
@@ -184,7 +215,7 @@ function FrameEnquiryModal({ open, onClose, userId, defaultEmail, onDone }: { op
       await submitFrameEnquiry({ name, email, note, file, userId });
       onDone('Your frame request is saved. We will be in touch soon.');
       setName('');
-      setNote('');
+       setNote('');
       setFile(undefined);
       onClose();
     } catch (requestError) {
@@ -291,7 +322,7 @@ function Home() {
          <div className="grid grid-cols-2 gap-x-3 gap-y-10 sm:grid-cols-3 sm:gap-x-5 lg:gap-x-7">{filtered.map((product) => <ProductCard key={product.id} product={product} wished={wishlisted.includes(product.id)} onWish={() => toggleWish(product.id)} onAdd={() => addToCart(product)} onOpen={() => window.location.assign(productPath(product.id))} />)}</div>
         {filtered.length === 0 && <div className="rounded-3xl bg-[#f2dec8] py-20 text-center"><p className="serif text-2xl text-[#5c2e30]">Nothing found, but something lovely is close.</p><button onClick={() => { setQuery(''); setCategory('All pieces'); }} className="mt-4 text-sm underline" data-testid="button-clear-search">Clear search</button></div>}
       </section>
-      <section id="personalise" className="bg-[#5c2e30] px-5 py-20 text-[#fff8ed] lg:px-10 lg:py-28"><div className="mx-auto grid max-w-[1320px] items-center gap-12 lg:grid-cols-[.85fr_1.15fr]"><div><p className="mono text-[#edc96c]">Your story, framed</p><h2 className="serif mt-4 text-5xl leading-[.95] tracking-[-.05em] sm:text-7xl">The gift they<br /><em className="text-[#edc96c]">didn't see coming.</em></h2><p className="mt-7 max-w-[400px] leading-7 text-[#f2dcd3]">Turn a date, a place, or an inside joke into something they can keep on the shelf. Choose your frame, add your words, make it yours.</p><AppButton variant="light" className="mt-9" testId="button-customise" onClick={() => setFrameOpen(true)}>Customise a frame <ArrowRight size={15} /></AppButton></div><div className="relative mx-auto w-full max-w-[560px]"><img src="/images/frame-custom.jpg" alt="Personalised frame ready to customise" className="aspect-[1.18] w-full rounded-[1.6rem] object-cover" data-testid="img-custom-frame" /><div className="absolute -bottom-5 -left-3 rounded-xl bg-[#edc96c] px-5 py-4 text-[#5c2e30] shadow-xl sm:-left-6"><p className="mono">Made in your words</p><p className="serif mt-1 text-xl">for keeps.</p></div></div></div></section>
+      <section id="personalise" className="bg-[#5c2e30] px-5 py-20 text-[#fff8ed] lg:px-10 lg:py-28"><div className="mx-auto grid max-w-[1320px] items-center gap-12 lg:grid-cols-[.85fr_1.15fr]"><div><p className="mono text-[#edc96c]">Your story, framed</p><h2 className="serif mt-4 text-5xl leading-[.95] tracking-[-.05em] sm:text-7xl">The gift they<br /><em className="text-[#edc96c]">didn't see coming.</em></h2><p className="mt-7 max-w-[400px] leading-7 text-[#f2dcd3]">Turn a date, a place, or an inside joke into something they can keep on the shelf. Choose your frame, add your words, make it yours.</p><AppButton variant="light" className="mt-9" testId="button-customise" onClick={() => window.location.assign(framesPath)}>Customise a frame <ArrowRight size={15} /></AppButton></div><div className="relative mx-auto w-full max-w-[560px]"><img src="/images/frame-custom.jpg" alt="Personalised frame ready to customise" className="aspect-[1.18] w-full rounded-[1.6rem] object-cover" data-testid="img-custom-frame" /><div className="absolute -bottom-5 -left-3 rounded-xl bg-[#edc96c] px-5 py-4 text-[#5c2e30] shadow-xl sm:-left-6"><p className="mono">Made in your words</p><p className="serif mt-1 text-xl">for keeps.</p></div></div></div></section>
       <section id="new" className="mx-auto max-w-[1320px] px-5 py-20 lg:px-10 lg:py-28"><div className="grid gap-12 lg:grid-cols-[.75fr_1.25fr]"><div><p className="mono text-[#d96d4d]">Freshly chosen</p><h2 className="serif mt-3 text-5xl leading-[.98] tracking-[-.05em] text-[#5c2e30]">New things<br /><em>for new memories.</em></h2><p className="mt-6 max-w-[320px] leading-7 text-[#765d5c]">The pieces we are currently obsessed with. Limited little batches, because the best finds should still feel like finds.</p><a href="#shop" className="line-link mt-8 inline-block text-sm font-semibold text-[#5c2e30]" data-testid="link-discover-new">Discover new in <ArrowRight className="ml-2 inline" size={15} /></a></div><div className="grid grid-cols-2 gap-4 sm:gap-6"><div className="relative overflow-hidden rounded-[1.3rem] bg-[#e4c7a9]"><img src="/images/gifting-set.jpg" alt="Curated Proniqa gift box" className="h-full min-h-[300px] w-full object-cover mix-blend-multiply transition duration-700 hover:scale-105" /><span className="absolute bottom-4 left-4 rounded-full bg-[#fff8ed] px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#5c2e30]">For the host</span></div><div className="mt-10 overflow-hidden rounded-[1.3rem] bg-[#e8c5b7] sm:mt-20"><img src="/images/earrings-close.jpg" alt="Golden earrings detail" className="h-full min-h-[300px] w-full object-cover mix-blend-multiply transition duration-700 hover:scale-105" /><div className="p-4"><p className="serif text-xl text-[#5c2e30]">Small, but says a lot.</p><p className="mt-1 text-xs text-[#765d5c]">The everyday edit</p></div></div></div></div></section>
       <section id="story" className="border-y border-[#5c2e30]/10 bg-[#f2dec8] px-5 py-20 lg:px-10 lg:py-24">
         <div className="mx-auto grid max-w-[1100px] items-center gap-10 lg:grid-cols-[.9fr_1.1fr] lg:gap-16">
@@ -321,6 +352,62 @@ function Home() {
     <AuthModal open={accountOpen} onClose={() => setAccountOpen(false)} userEmail={userEmail} onNotice={showNotice} />
     <FrameEnquiryModal open={frameOpen} onClose={() => setFrameOpen(false)} userId={userId} defaultEmail={userEmail} onDone={showNotice} />
     <CheckoutModal open={checkoutOpen} onClose={() => setCheckoutOpen(false)} cart={cart} userId={userId} defaultEmail={userEmail} onComplete={() => setCart([])} onDone={showNotice} />
+  </div>;
+}
+
+function FramesPage() {
+  const [frames, setFrames] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [framesError, setFramesError] = useState('');
+  const [frameOpen, setFrameOpen] = useState(false);
+  const [selectedFrame, setSelectedFrame] = useState<Product>();
+  const [userEmail, setUserEmail] = useState<string>();
+  const [userId, setUserId] = useState<string>();
+  const [notice, setNotice] = useState('');
+
+  useEffect(() => {
+    if (!isFirebaseConfigured) {
+      setLoading(false);
+      setFramesError('Firebase is not configured, so frames cannot be loaded yet.');
+      return () => undefined;
+    }
+
+    return subscribeToFrames(
+      (remoteFrames) => {
+        setFrames(remoteFrames);
+        setFramesError('');
+        setLoading(false);
+      },
+      () => {
+        setFramesError('We could not read the Firebase frames collection. Check your Firestore rules and project settings.');
+        setLoading(false);
+      },
+    );
+  }, []);
+  useEffect(() => subscribeToAuth((user) => { setUserEmail(user?.email ?? undefined); setUserId(user?.uid); }), []);
+
+  const goHome = () => window.location.assign(appBasePath);
+  const showNotice = (message: string) => { setNotice(message); window.setTimeout(() => setNotice(''), 3200); };
+
+  return <div className="grain min-h-screen overflow-hidden bg-[#f8f0e2]">
+    <Header cartCount={0} userEmail={userEmail} onAccount={goHome} onCart={goHome} onSearch={goHome} onMenu={goHome} />
+    <main>
+      <section className="mx-auto max-w-[1320px] px-5 pb-12 pt-16 lg:px-10 lg:pb-16 lg:pt-24">
+        <a href={homeHashPath('personalise')} className="line-link text-sm text-[#765d5c]" data-testid="link-frames-back">← Back to Proniqa</a>
+        <div className="mt-10 max-w-[760px]"><p className="mono text-[#d96d4d]">Your story, framed</p><h1 className="serif mt-4 text-[clamp(4rem,8vw,7.5rem)] leading-[.88] tracking-[-.07em] text-[#5c2e30]">Choose the frame<br /><em className="text-[#d96d4d]">that feels like you.</em></h1><p className="mt-7 max-w-[520px] text-base leading-7 text-[#765d5c]">Browse every frame in our collection, then tell us the words, photo, or memory you want to make yours.</p></div>
+      </section>
+      <section className="bg-[#f2dec8] px-5 py-16 lg:px-10 lg:py-24">
+        <div className="mx-auto max-w-[1320px]">
+          {framesError && <div className="mb-8 rounded-2xl border border-[#d96d4d]/30 bg-[#f7d8d2] px-4 py-3 text-sm leading-6 text-[#6d3030]" role="alert" data-testid="status-frames-error">{framesError}</div>}
+          {loading && <div className="flex min-h-[240px] items-center justify-center"><Loader2 size={28} className="animate-spin text-[#d96d4d]" /></div>}
+          {!loading && frames.length === 0 && !framesError && <div className="rounded-[1.6rem] bg-[#fff8ed] px-6 py-20 text-center"><p className="mono text-[#d96d4d]">The frame shelf is getting ready</p><h2 className="serif mt-3 text-4xl text-[#5c2e30]">No frames have been added yet.</h2><p className="mx-auto mt-4 max-w-[380px] text-sm leading-6 text-[#765d5c]">Add frame documents to the Firebase <strong>frames</strong> collection and they will appear here automatically.</p></div>}
+          <div className="grid gap-6 lg:grid-cols-2">{frames.map((frame) => <FrameCard key={frame.id} frame={frame} onChoose={() => { setSelectedFrame(frame); setFrameOpen(true); }} />)}</div>
+        </div>
+      </section>
+      <section className="bg-[#5c2e30] px-5 py-16 text-center text-[#fff8ed] lg:px-10 lg:py-20"><p className="mono text-[#edc96c]">Not sure what to say?</p><h2 className="serif mx-auto mt-3 max-w-[680px] text-4xl leading-tight sm:text-5xl">We’ll help you turn the feeling into a keepsake.</h2><button onClick={() => { setSelectedFrame(undefined); setFrameOpen(true); }} className="mt-8 inline-flex items-center gap-3 rounded-full bg-[#fff8ed] px-6 py-3 text-sm font-semibold text-[#5c2e30] transition hover:-translate-y-0.5" data-testid="button-general-frame-enquiry">Share your frame idea <ArrowRight size={15} /></button></section>
+    </main>
+    {notice && <div className="fixed bottom-5 left-1/2 z-[60] -translate-x-1/2 rounded-full bg-[#5c2e30] px-5 py-3 text-sm text-[#fff8ed] shadow-xl" data-testid="status-frames-notice">{notice}</div>}
+    <FrameEnquiryModal open={frameOpen} onClose={() => setFrameOpen(false)} userId={userId} defaultEmail={userEmail} frameName={selectedFrame?.name} onDone={showNotice} />
   </div>;
 }
 
@@ -497,7 +584,7 @@ function OurStoryPage() {
 }
 
 function Router() {
-  return <Switch><Route path="/" component={Home} /><Route path="/our-story" component={OurStoryPage} /><Route path="/product/:id" component={ProductPage} /><Route component={NotFound} /></Switch>;
+  return <Switch><Route path="/" component={Home} /><Route path="/our-story" component={OurStoryPage} /><Route path="/customise" component={FramesPage} /><Route path="/product/:id" component={ProductPage} /><Route component={NotFound} /></Switch>;
 }
 
 function RoutedErrorBoundary({ children }: { children: ReactNode }) {
